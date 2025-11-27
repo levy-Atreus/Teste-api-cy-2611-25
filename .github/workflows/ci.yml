@@ -1,0 +1,60 @@
+name: CI e Publicação de Resultados
+
+on:
+  push:
+    # A Action será disparada quando houver push nos branches 'main' E 'exercicios/modulo-4'
+    branches: [ "main", "exercicios/modulo-4" ]
+  workflow_dispatch:
+
+jobs:
+  test_and_publish:
+    runs-on: ubuntu-latest
+    
+    # Define as permissões necessárias para o deploy no Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    steps:
+    - name: ⬇️ Checkout do Código
+      uses: actions/checkout@v4
+
+    - name: ⚙️ Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Versão recomendada para o Cypress/Node.js
+        
+    - name: 📦 Instalar Dependências
+      run: npm install
+
+    # 🎯 ESTAPA CRÍTICA: INICIA O SERVIDOR E RODA TESTES
+    - name: 🧪 Rodar Testes e Esperar Servidor
+      # Usamos 'cy:run-ci' que no seu package.json executa: 
+      # start-server-and-test start http://localhost:3000/api-doc test
+      # Isso garante que o servidor 'serverest' ligue e os testes rodem.
+      run: npm run cy:run-ci
+
+    - name: ⚙️ Criar Artefato Básico para Publicação
+      # Cria o diretório '_site' (necessário para o GitHub Pages)
+      # Nota: Seus testes Cypress/Mocha geram um relatório HTML mais completo,
+      # você deve COPIAR esse relatório para '_site/index.html'
+      run: |
+        mkdir _site
+        echo "<h1>✅ Testes Executados com Sucesso no Módulo 4!</h1>" > _site/index.html
+        echo "<p>Resultados gerados em ${{ github.sha }}</p>" >> _site/index.html
+        # Exemplo: cp ./caminho/do/seu/relatorio.html _site/index.html
+
+    # --- ETAPAS DE PUBLICAÇÃO DO ARTEFATO ---
+
+    - name: 🔨 Configurar GitHub Pages
+      uses: actions/configure-pages@v4
+      
+    - name: ⬆️ Publicar o Artefato
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './_site' # Publica o conteúdo da pasta _site
+
+    - name: 🚀 Deploy no GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
