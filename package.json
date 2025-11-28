@@ -1,49 +1,26 @@
-name: CI e Publicação de Resultados
-
-on:
-  push:
-    branches: [ ci ]
-  
-  workflow_dispatch:
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    
-    steps:
-      # 1. Checkout (Atualizado para v4)
-      - name: Checkout Código
-        uses: actions/checkout@v4
-      
-      # 2. Setup Node.js (Atualizado para v3)
-      - name: Configuração do Node.js
-        uses: actions/setup-node@v3
-        with:
-          # Use uma versão LTS (Long-Term Support)
-          node-version: '18' 
-          
-      # 3. Execução dos Testes Cypress (Correção do Comando!)
-      - name: Cypress run
-        uses: cypress-io/github-action@v2
-        # Continuar para a próxima etapa mesmo se os testes falharem (para publicar o relatório)
-        continue-on-error: true 
-        with:
-          # Parte 1: Instalar dependências
-          install-command: npm install
-          
-          # PARTE CRÍTICA (CORREÇÃO DO ERRO ANTERIOR): 
-          # Comando explícito para iniciar os testes.
-          command: npm run cypress:run 
-          
-          # Browser é opcional em CI, mas Chrome é o padrão para headless.
-          browser: chrome
-
-      # 4. Publicação do Relatório
-      - name: Publicar Relatório
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          # Token de segurança para permissão de escrita no GH Pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Diretório onde o relatório foi gerado.
-          publish_dir: ./mochawesome-report
-          
+{
+  "name": "teste-api-cypress",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx serverest", 
+    "cy:run" : "npx cypress run",
+    "cy:report": "npx mochawesome-merge ./mochawesome-report/mochawesome*.json  > mochawesome-report/report.json && npx marge mochawesome-report/report.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^9.7.0"
+  },
+  "dependencies": {
+    "cypress-multi-reporters": "^1.5.0",
+    "joi": "^17.4.2",
+    "mocha": "^9.1.0",
+    "mochawesome": "^6.2.2",
+    "mochawesome-merge": "^4.2.0",
+    "mochawesome-report-generator": "^5.2.0"
+  }
+}
