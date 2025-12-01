@@ -43,13 +43,24 @@ describe('Testes da Funcionalidade Produtos', () => {
         })
     });
 
-    it('Deve validar mensagem de erro ao cadastrar produto repetido', () => {
-        cy.cadastrarProduto(token, 'Produto EBAC Novo 1', 250, "Descrição do produto novo", 180)
-            .then((response) => {
-                expect(response.status).to.equal(400)
-                expect(response.body.message).to.equal('Já existe produto com esse nome')
-            })
-    });
+   it('Deve validar mensagem de erro ao cadastrar produto repetido', () => {
+    const nomeProdutoRepetido = 'Produto para Teste de Repetição';
+
+    // 1. PRIMEIRA CHAMADA: Cadastra o produto (espera sucesso - 201)
+    cy.cadastrarProduto(token, nomeProdutoRepetido, 250, "Descrição", 180)
+      .then((primeiraResponse) => {
+        // Garantimos que o primeiro cadastro foi OK
+        expect(primeiraResponse.status).to.equal(201); 
+      });
+
+    // 2. SEGUNDA CHAMADA: Tenta cadastrar o MESMO produto (espera falha - 400)
+    cy.cadastrarProduto(token, nomeProdutoRepetido, 250, "Descrição", 180)
+      .then((segundaResponse) => {
+        // AQUI ESTÁ A ASSERÇÃO CORRETA para produto repetido
+        expect(segundaResponse.status).to.equal(400); 
+        expect(segundaResponse.body.message).to.equal('Já existe produto com esse nome');
+      });
+});
 
     it('Deve editar um produto já cadastrado', () => {
         cy.request('produtos').then(response => {
